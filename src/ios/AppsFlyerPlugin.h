@@ -1,36 +1,50 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
-#import "AppsFlyerTracker.h"
+#import "AppsFlyerAttribution.h"
+#import <objc/message.h>
 
-
-@interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>
+@interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
+@property (readwrite, nonatomic) BOOL shouldStartSdk;
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
+- (void)startSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command;
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;
-- (void)sendTrackingWithEvent:(CDVInvokedUrlCommand*)command;
-- (void)onConversionDataReceived:(NSDictionary*) installData;
-- (void)onConversionDataRequestFailure:(NSError *) error;
-- (void)trackEvent:(CDVInvokedUrlCommand*)command;
+- (void)onConversionDataSuccess:(NSDictionary*) installData;
+- (void)onConversionDataFail:(NSError *) error;
+- (void)onAppOpenAttribution:(NSDictionary*) attributionData;
+- (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
+- (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result;
+- (void)logEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
-- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command;
-- (void)stopTracking:(CDVInvokedUrlCommand *) command;
+- (void)anonymizeUser:(CDVInvokedUrlCommand *)command;
+- (void)Stop:(CDVInvokedUrlCommand *) command;
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand *)command;
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;
-- (void)trackCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
-- (void)trackAndOpenStore:(CDVInvokedUrlCommand *)command;
+- (void)logCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
+- (void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand *)command;
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
+- (void)setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand *)command;
+- (void)disableCollectASA:(CDVInvokedUrlCommand *)command;
+- (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
+- (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
+- (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
+- (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
+- (void)setConsentData:(CDVInvokedUrlCommand*)command;
+- (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command;
+- (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
+- (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
+
 @end
-
-
-
 
 // Appsflyer JS objects
 #define afDevKey                        @"devKey"
 #define afAppId                         @"appId"
+#define afwaitForATTUserAuthorization   @"waitForATTUserAuthorization"
 #define afIsDebug						@"isDebug"
+#define afSanboxUninstall				@"useUninstallSandbox"
 
 // User Invites, Cross Promotion
 #define afCpAppID                       @"crossPromotedAppId"
@@ -40,6 +54,7 @@
 #define afUiImageUrl                    @"referrerImageUrl"
 #define afUiCustomerID                  @"customerID"
 #define afUiBaseDeepLink                @"baseDeepLink"
+#define afUiBrandDomain                 @"brandDomain"
 
 // Appsflyer native objects
 #define afConversionData                @"onInstallConversionDataListener"
@@ -50,3 +65,17 @@
 #define afOnAppOpenAttribution          @"onAppOpenAttribution"
 #define afOnInstallConversionFailure    @"onInstallConversionFailure"
 #define afOnInstallConversionDataLoaded @"onInstallConversionDataLoaded"
+#define afDeepLink                      @"onDeepLinking"
+#define afOnDeepLinking                 @"onDeepLinkListener"
+
+//RECEIPT VALIDATION
+#define afProductIdentifier                     @"productIdentifier"
+#define afTransactionId                         @"transactionId"
+#define afPrice                                 @"price"
+#define afCurrency                              @"currency"
+#define afAdditionalParameters                  @"additionalParameters"
+static NSString *const NO_PARAMETERS_ERROR    = @"No purchase parameters found";
+static NSString *const VALIDATE_SUCCESS       = @"In-App Purchase Validation success";
+
+//Set custom domains
+#define afNoDomains @"no domains in the domains array"
